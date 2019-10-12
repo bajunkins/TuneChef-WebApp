@@ -1,0 +1,18 @@
+.body {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 100%;
+  background-color: #292929;
+  color: #fff;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.header {
+  color: #fff;
+  font-weight: bold;
+  font-size: 50px;
+  margin: 20px 5vw;
+}

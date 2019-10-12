@@ -1,21 +1,25 @@
-.container {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  min-height: 100%;
-  background-color: #141e32;
-  position: absolute;
-  top: 0;
-  left: 0;
-}
-
-.header {
-  color: #fff;
+.title {
   font-weight: bold;
   font-size: 8vw;
+  margin: auto auto 0 auto;
+}
+
+.button {
+  background-color: #811efa;
+  box-shadow: rgba(0, 0, 0, 0.2) 6px 0px 8px;
+  width: 250px;
+  line-height: 65px;
+  text-align: center;
+  font-size: 28px;
+  font-weight: bold;
   outline: none;
   user-select: none;
   cursor: pointer;
+  margin: 30px auto auto auto;
+  transition: 200ms;
+}
+.button:hover,
+.button:focus {
+  transform: scale(.95);
+  background-color: #7305fa;
 }
