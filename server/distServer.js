@@ -6,9 +6,9 @@ import path from 'path';
 import cors from 'cors';
 import compression from 'compression';
 import sslRedirect from 'heroku-ssl-redirect';
-
 import logger from './logger';
 import PartyController from './controllers/partyController';
+import SpotifyController from './controllers/spotifyController';
 
 require('./config/database.js');
 
@@ -25,6 +25,7 @@ app.use(cors());
 // const io = socketIO(httpServer);
 
 app.use('/api/party', PartyController);
+app.use('/api/spotify', SpotifyController);
 
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../dist/index.html'));
