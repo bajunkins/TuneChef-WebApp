@@ -1,7 +1,7 @@
 import React from 'react';
-
-import styles from './styles.module.css';
 import axios from 'axios';
+
+import styles from './styles.css';
 
 class HomePage extends React.Component {
   constructor(props) {
@@ -17,7 +17,7 @@ class HomePage extends React.Component {
       })
       .catch((err) => {
         console.error(err);
-      })
+      });
     // axios.defaults.headers.common['Authorization'] = 'c0d3ae62e6e74f0baa142965fcaa68c6';
     // axios.get('https://api.spotify.com/v1/browse/featured-playlists')
     //   .then((response) => {
