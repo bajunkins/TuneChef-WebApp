@@ -81,9 +81,12 @@ router.post('/generate', (req, res) => {
       addTopTracks(req.body.tracksList, playlistId);
       addCommonTracks(req.body.tracksList, playlistId);
       addCommonArtists(req.body.artistsList, playlistId);
+      addRecommendations(req.body.tracksList, (tracks) => {
+        addTracks(playlistId, tracks);
+      });
+
 
     }, (err) => {
-      console.log(err);
       return res.status(500).send(err);
     });
 });
@@ -153,16 +156,11 @@ router.get('/join', (req, res) => {
  * Adds passed tracks list to passed playlist id
  */
 function addTracks(playlistId, tracksList) {
-  if (tracksList.length < 1) return -1;
-
-
-  const tracks = tracksList.map(x => `spotify:track:${x.id}`);
-  console.log(tracks);
+  const tracks = tracksList.map(x => `spotify:track:${x}`);
   spotifyApi.addTracksToPlaylist(playlistId, tracks)
     .then((data) => {
       return data;
     }, (err) => {
-      console.log(err);
       return err;
     });
   return tracks;
@@ -175,10 +173,9 @@ function addTopTracks(tracksList, playlistId) {
   const tracks = [];
   for (var i = 0; i < tracksList.length; i++) {
     for (var j = 0; j < 3; j++) {
-      tracks.push(tracksList[i][j]);
+      tracks.push(tracksList[i][j].id);
     }
   }
-
   addTracks(playlistId, tracks);
 }
 
@@ -293,15 +290,98 @@ function getArtistImportance(artistId, artistsList) {
 /**
  * Returns json object array generated recommendations
  */
-function addRecommendations() {
+function addRecommendations(tracksList, cb) {
 
+    var recommendedTracks = []
+
+    getTargets(tracksList, (targets, seeds) => {
+      spotifyApi.getRecommendations({ ...targets, seed_tracks: seeds })
+        .then((recommendations) => {
+            for (var i = 0; i < 20; i++) {
+              recommendedTracks.push(recommendations.body.tracks[i].id)
+            }
+            cb(recommendedTracks);
+        }, (err) => {
+          return err;
+        });
+    });
 }
 
 /**
  * Returns json object target parameters for recommendation
  */
-function getTargets() {
+function getTargets(tracksList, cb) {
 
+  var total = 0;
+
+  var seeds = [];
+  var seedCount = 0;
+
+  var targets = {
+    target_duration_ms: 0,
+    target_key: 0,
+    target_mode: 0,
+    target_time_signature: 0,
+    target_acousticness: 0,
+    target_danceability: 0,
+    target_energy: 0,
+    target_instrumentalness: 0,
+    target_liveness: 0,
+    target_loudness: 0,
+    target_speechiness: 0,
+    target_valence: 0,
+    target_tempo: 0,
+  }
+
+  async function waitForAllTracks() {
+    const promises = [];
+
+    for (var i = 0; i < tracksList.length; i++) {
+      for (var j = 0; j < tracksList[i].length; j++) {
+        promises.push(new Promise ((resolve) => {
+          if (seedCount < 5 && !seeds.includes(tracksList[i][j])) {
+            seeds.push(tracksList[i][j].id);
+            seedCount++;
+          }
+          spotifyApi.getAudioFeaturesForTrack(tracksList[i][j].id)
+            .then((features) => {
+              targets.target_duration_ms += features.body.duration_ms
+              targets.target_key += features.body.key
+              targets.target_mode += features.body.mode
+              targets.target_time_signature += features.body.time_signature
+              targets.target_acousticness += features.body.acousticness
+              targets.target_danceability += features.body.danceability
+              targets.target_energy += features.body.energy
+              targets.target_instrumentalness += features.body.instrumentalness
+              targets.target_liveness += features.body.liveness
+              targets.target_loudness += features.body.loudness
+              targets.target_speechiness += features.body.speechiness
+              targets.target_valence += features.body.valence
+              targets.target_tempo += features.body.tempo
+              total++
+              resolve();
+            }, (err) => {
+              resolve();
+            });
+        }));
+      }
+    }
+
+
+    await Promise.all(promises);
+
+    if (total != 0) {
+      Object.entries(targets).forEach(([key, value]) => {
+        targets[key] = Math.round(value / total);
+      });
+      // targets.target_key = Math.round(targets.target_key);
+      // targets.target_mode = Math.round(targets.target_mode);
+    }
+
+    cb(targets, seeds);
+  }
+
+  waitForAllTracks();
 }
 
 /**
