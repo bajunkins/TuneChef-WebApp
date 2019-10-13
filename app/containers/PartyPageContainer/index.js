@@ -24,6 +24,10 @@ class PartyPage extends React.Component {
     }
 
     const id = this.props.match.params.id;
+    if (id == null) {
+      return;
+    }
+
     axios.get('/api/party/id', {
       params: {
         id,

@@ -1,0 +1,67 @@
+.container {
+  margin: 40px auto;
+  width: 90%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: rgba(129, 30, 250, .1);
+  border: 5px solid #811efa;
+  box-shadow: rgba(0, 0, 0, 0.2) 6px 0px 8px;
+  text-align: center;
+  color: #fff;
+}
+
+.welcome {
+  font-size: 40px;
+  margin-top: 20px;
+  font-weight: bold;
+  width: 80%;
+}
+
+.icon {
+  margin-top: 20px;
+  font-size: 90px;
+  background-color: #fff;
+  color: #811efa;
+  box-shadow: rgba(0, 0, 0, 0.2) 6px 0px 8px;
+  border-radius: 50%;
+  width: 160px;
+  line-height: 160px;
+  text-align: center;
+  user-select: none;
+}
+
+.joinText {
+  font-size: 24px;
+  margin-top: 20px;
+  width: 80%;
+}
+
+.joinBigText {
+  margin-top: 5px;
+  font-size: 30px;
+  font-weight: bold;
+  width: 80%;
+}
+
+.joinButton {
+  background-color: #811efa;
+  box-shadow: rgba(0, 0, 0, 0.2) 6px 0px 8px;
+  width: 250px;
+  line-height: 65px;
+  text-align: center;
+  font-size: 28px;
+  font-weight: bold;
+  outline: none;
+  user-select: none;
+  cursor: pointer;
+  margin: 30px auto 40px auto;
+  border-radius: 20px;
+  transition: 200ms;
+}
+.joinButton:hover,
+.joinButton:focus {
+  transform: scale(.95);
+  background-color: #7305fa;
+}

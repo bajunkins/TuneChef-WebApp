@@ -10,7 +10,9 @@ class DashboardPage extends React.Component {
   constructor(props) {
     super(props);
 
-    this.state = {};
+    this.state = {
+      parties: [],
+    };
   }
 
   componentDidMount() {
@@ -25,7 +27,11 @@ class DashboardPage extends React.Component {
       },
     })
       .then((response) => {
-        console.log(response);
+        if (response.data.success) {
+          this.setState({
+            parties: response.data.parties,
+          });
+        }
       })
       .catch((error) => {
         /* eslint no-console: ["warn", { allow: ["error"] }] */
@@ -52,6 +58,14 @@ class DashboardPage extends React.Component {
               Create a New Party
             </div>
           </Link>
+
+          {this.state.parties.map((party) => (
+            <Link className={styles.partyContainer} key={party._id} to={`/party/${party._id}`}>
+              <div className={styles.partyText}>
+                {party.name}
+              </div>
+            </Link>
+          ))}
         </div>
       </div>
     );

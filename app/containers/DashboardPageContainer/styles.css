@@ -6,6 +6,7 @@
 }
 
 .newPartyContainer {
+  margin: 15px;
   height: 300px;
   width: 300px;
   display: flex;
@@ -41,6 +42,36 @@
   color: #fff;
   font-size: 28px;
   margin-top: 30px;
+  font-weight: bold;
+  width: 80%;
+  text-align: center;
+}
+
+.partyContainer {
+  margin: 15px;
+  height: 300px;
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(129, 30, 250, .25);
+  border: 5px solid #811efa;
+  box-shadow: rgba(0, 0, 0, 0.2) 6px 0px 8px;
+  user-select: none;
+  cursor: pointer;
+  outline: none;
+  text-decoration: none;
+  transition: 200ms;
+}
+.partyContainer:hover,
+.partyContainer:focus {
+  transform: scale(0.95);
+}
+
+.partyText {
+  color: #fff;
+  font-size: 28px;
   font-weight: bold;
   width: 80%;
   text-align: center;
