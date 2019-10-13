@@ -1,15 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
+      <link rel="stylesheet" href="<%=htmlWebpackPlugin.files.chunks.main.css %>">
       <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ" crossorigin="anonymous">
       <script src="https://kit.fontawesome.com/984809ea42.js"></script>
       <style>
         .grecaptcha-badge { opacity:0; }
       </style>
-      <title>HackNC Jam</title>
+      <title>TuneChef</title>
     </head>
     <body>
       <div id="app"></div>
-      <script src="/bundle.js"></script>
+      <script src="<%= htmlWebpackPlugin.files.chunks.main.entry %>"></script>
     </body>
 </html>

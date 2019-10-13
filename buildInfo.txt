@@ -1,0 +1,8 @@
+
+index.html body for local
+<script src="/bundle.js"></script>
+
+index.html for heroku
+<script src="<%= htmlWebpackPlugin.files.chunks.main.entry %>"></script>
+and this in head
+<link rel="stylesheet" href="<%=htmlWebpackPlugin.files.chunks.main.css %>">

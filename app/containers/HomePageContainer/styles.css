@@ -1,7 +1,20 @@
-.title {
-  font-weight: bold;
-  font-size: 8vw;
+.titleRow {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
   margin: auto auto 0 auto;
+  user-select: none;
+}
+
+.logo {
+  width: 10vw;
+  margin-right: 3vw;
+}
+
+.title {
+  font-family: 'Alegreya Sans';
+  font-weight: 800;
+  font-size: 8vw;
 }
 
 .button {

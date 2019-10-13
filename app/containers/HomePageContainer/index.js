@@ -2,6 +2,7 @@ import React from 'react';
 import axios from 'axios';
 import PropTypes from 'prop-types';
 
+import TuneChef from '../../images/TuneChef.png';
 import { getQueryVar } from '../../tools/helpers';
 import arts from '../../arts.css';
 import styles from './styles.css';
@@ -57,8 +58,11 @@ class HomePage extends React.Component {
   render() {
     return (
       <div className={arts.body}>
-        <div className={styles.title}>
-          TuneChef
+        <div className={styles.titleRow}>
+          <img src={TuneChef} alt="TuneChef Logo" className={styles.logo} draggable={false} />
+          <div className={styles.title}>
+            TuneChef
+          </div>
         </div>
         <div className={styles.button} role="button" tabIndex={0} onClick={authorize}>
           Get Started

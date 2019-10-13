@@ -13,7 +13,7 @@ router.post('/create', (req, res) => {
     name: req.body.name,
     author: req.body.author,
     desc: req.body.desc,
-    date: moment(),
+    date: moment().subtract(5, 'hours'),
   },
   (err, party) => {
     if (err) {

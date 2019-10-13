@@ -2,8 +2,10 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import axios from 'axios';
 import classNames from 'classnames';
-import { Link, Redirect } from 'react-router-dom';
+import moment from 'moment';
+import { Redirect } from 'react-router-dom';
 
+import TuneChef from '../../images/TuneChef.png';
 import arts from '../../arts.css';
 import styles from './styles.css';
 
@@ -14,6 +16,10 @@ class PartyPage extends React.Component {
     this.state = {
       ready: false,
       name: '',
+      desc: '',
+      author: '',
+      date: '',
+      users: {},
     };
   }
 
@@ -34,9 +40,13 @@ class PartyPage extends React.Component {
       },
     })
       .then((response) => {
-        console.log(response);
+        // console.log(response);
         this.setState({
           name: response.data.party.name,
+          desc: response.data.party.desc,
+          author: response.data.party.author,
+          date: moment(response.data.party.date).format('MM/DD/YY'),
+          users: response.data.party.users,
           ready: true,
         });
       })
@@ -56,6 +66,39 @@ class PartyPage extends React.Component {
       <div className={arts.body}>
         <div className={arts.header}>
           {this.state.name}
+        </div>
+
+        <div className={styles.upperRow}>
+          <div className={styles.noImage}>
+            <img src={TuneChef} alt="TuneChef Logo" className={styles.logo} draggable={false} />
+          </div>
+
+          <div className={styles.upperColumn}>
+            <div className={styles.desc}>
+              {this.state.desc}
+            </div>
+
+            <div className={styles.detailRow}>
+              <i className={classNames(styles.detailIcon, 'fas fa-user')} />
+              <div className={styles.detailText}>
+                {`Host: ${this.state.author}`}
+              </div>
+            </div>
+
+            <div className={styles.detailRow}>
+              <i className={classNames(styles.detailIcon, 'fas fa-clock')} />
+              <div className={styles.detailText}>
+                {`Date Created: ${this.state.date}`}
+              </div>
+            </div>
+
+            <div className={styles.detailRow} style={{ marginBottom: -10 }}>
+              <i className={classNames(styles.detailIcon, 'fas fa-users')} />
+              <div className={styles.detailText}>
+                {`Partygoers: ${Object.keys(this.state.users).length}`}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );

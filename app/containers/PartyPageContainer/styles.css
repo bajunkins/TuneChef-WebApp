@@ -1,0 +1,52 @@
+.upperRow {
+  display: flex;
+  flex-direction: row;
+  width: 90vw;
+  margin: 10px auto;
+}
+
+.noImage {
+  height: 250px;
+  width: 250px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(129, 30, 250, .1);
+  border: 5px solid #811efa;
+  box-shadow: rgba(0, 0, 0, 0.2) 6px 0px 8px;
+  user-select: none;
+}
+
+.logo {
+  height: 130px;
+}
+
+.upperColumn {
+  display: flex;
+  flex-direction: column;
+  margin-left: 20px;
+  width: 50vw;
+  height: 250px;
+}
+
+.desc {
+  font-size: 22px;
+  flex-grow: 1;
+}
+
+.detailRow {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin: 3px 0;
+}
+
+.detailIcon {
+  font-size: 18px;
+}
+
+.detailText {
+  font-size: 20px;
+  margin-left: 15px;
+}
