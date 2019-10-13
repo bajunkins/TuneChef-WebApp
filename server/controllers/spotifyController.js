@@ -147,6 +147,50 @@ router.put('/logout', (req, res) => {
   return res.status(200).send('Success!');
 });
 
+router.get('/top', (req, res) => {
+
+  let topTracks = [];
+  let topArtists = [];
+
+  async function waitForTop() {
+    const promises = [];
+
+    promises.push(new Promise((resolve) => {
+      spotifyApi.getMyTopTracks({limit: 50, time_range: 'short_term'})
+        .then((data) => {
+          topTracks = data.body.items;
+          resolve();
+        }, (err) => {
+          if (err) {
+            console.error(err);
+          }
+        })
+    }))
+    promises.push(new Promise((resolve) => {
+      spotifyApi.getMyTopArtists({limit: 50, time_range: 'short_term'})
+        .then((data) => {
+          topArtists = data.body.items;
+          resolve();
+        }, (err) => {
+          if (err) {
+            console.error(err);
+          }
+        })
+    }))
+
+    await Promise.all(promises);
+
+    return {
+      topTracks: topTracks,
+      topArtists: topArtists,
+    };
+
+  }
+
+  waitForTop();
+
+})
+
 /**
  * Get top 3 tracks from each user to playlist
  */
