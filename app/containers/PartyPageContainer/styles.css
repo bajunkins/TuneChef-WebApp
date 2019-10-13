@@ -5,6 +5,8 @@
   font-size: 24px;
   font-weight: bold;
   text-decoration: none;
+  outline: none;
+  cursor: pointer;
   color: #fff;
   transition: 200ms;
 }
@@ -40,7 +42,7 @@
   display: flex;
   flex-direction: column;
   margin-left: 20px;
-  width: 50vw;
+  flex-grow: 1;
   height: 250px;
 }
 
@@ -66,6 +68,40 @@
   margin-left: 15px;
 }
 
+.createButton {
+  color: #fff;
+  height: 250px;
+  width: 250px;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(129, 30, 250, .15);
+  border: 5px solid #811efa;
+  box-shadow: rgba(0, 0, 0, 0.2) 6px 0px 8px;
+  user-select: none;
+  text-decoration: none;
+  outline: none;
+  cursor: pointer;
+  transition: 200ms;
+}
+.createButton:hover,
+.createButton:focus {
+  transform: scale(0.95);
+}
+
+.createIcon {
+  font-size: 80px;
+}
+
+.createText {
+  font-size: 28px;
+  font-weight: bold;
+  margin-top: 20px;
+  text-align: center;
+}
+
 .linkRow {
   display: flex;
   flex-direction: row;
@@ -82,7 +118,7 @@
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  background-color: rgba(129, 30, 250, .25);
+  background-color: rgba(129, 30, 250, .15);
   border: 5px dashed #811efa;
   box-shadow: rgba(0, 0, 0, 0.2) 6px 0px 8px;
   user-select: none;

@@ -8,19 +8,21 @@ const router = express.Router();
 router.use(bodyParser.urlencoded({ extended: true }));
 router.use(bodyParser.json());
 
-const credentials = {
+const spotifyCreds = {
   clientId: 'c0d3ae62e6e74f0baa142965fcaa68c6',
   clientSecret: process.env.SPOTIFY_SECRET,
   redirectUri: 'http://localhost:3000/callback',
 };
 
-const spotifyApi = new SpotifyWebApi(credentials);
+let spotifyApi = new SpotifyWebApi(spotifyCreds);
 
-const joinApi = new SpotifyWebApi({
+const joinCreds = {
   clientId: 'c0d3ae62e6e74f0baa142965fcaa68c6',
   clientSecret: process.env.SPOTIFY_SECRET,
   redirectUri: 'http://localhost:3000/thanks',
-});
+};
+
+let joinApi = new SpotifyWebApi(joinCreds);
 
 router.get('/authorize', (req, res) => {
   const scopes = ['user-read-private',
@@ -154,6 +156,14 @@ router.put('/joined', (req, res) => {
     (err) => {
       return res.status(200).json({ success: false, result: err });
     });
+});
+
+router.put('/logout', (req, res) => {
+  spotifyApi.resetCredentials();
+  joinApi.resetCredentials();
+  spotifyApi = new SpotifyWebApi(spotifyCreds);
+  joinApi = new SpotifyWebApi(joinCreds);
+  return res.status(200).send('Success!');
 });
 
 export default router;

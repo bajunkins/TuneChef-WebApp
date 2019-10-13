@@ -141,6 +141,17 @@ class PartyPage extends React.Component {
               </div>
             </div>
           </div>
+
+          {Object.keys(this.state.users).length > 0 ? (
+            <Link className={styles.createButton} to={`/playlist/${this.state.id}`}>
+              <i className={classNames(styles.createIcon, 'fas fa-music')} />
+              <div className={styles.createText}>
+                Create
+                <br />
+                Playlist
+              </div>
+            </Link>
+          ) : null}
         </div>
 
         <div className={styles.linkRow}>

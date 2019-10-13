@@ -1,3 +1,19 @@
+.logout {
+  position: absolute;
+  top: 20px;
+  right: 30px;
+  font-size: 24px;
+  font-weight: bold;
+  text-decoration: none;
+  outline: none;
+  cursor: pointer;
+  color: #fff;
+  transition: 200ms;
+}
+.logout:hover {
+  transform: scale(.95);
+}
+
 .partyHolder {
   display: flex;
   flex-flow: row wrap;
@@ -13,7 +29,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background-color: rgba(129, 30, 250, .25);
+  background-color: rgba(129, 30, 250, .15);
   border: 5px dashed #811efa;
   box-shadow: rgba(0, 0, 0, 0.2) 6px 0px 8px;
   user-select: none;
@@ -55,7 +71,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background-color: rgba(129, 30, 250, .25);
+  background-color: rgba(129, 30, 250, .15);
   border: 5px solid #811efa;
   box-shadow: rgba(0, 0, 0, 0.2) 6px 0px 8px;
   user-select: none;
