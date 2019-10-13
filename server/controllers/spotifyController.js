@@ -101,12 +101,10 @@ router.put('/joined', (req, res) => {
             async function waitForTop() {
               const promises = [];
 
-              console.log(user.body.display_name);
               promises.push(new Promise((resolve) => {
                 joinApi.getMyTopTracks({ limit: 50 })
                   .then((response) => {
                     topTracks = response.body.items.map((i) => (i.id));
-                    console.log(topTracks);
                     resolve();
                   }, (error) => {
                     if (error) {
@@ -192,7 +190,7 @@ router.put('/logout', (req, res) => {
 function getTopTracks(tracksList, cb) {
   const tracks = [];
   for (let i = 0; i < tracksList.length; i++) {
-    for (let j = 0; j < 3; j++) {
+    for (let j = 0; j < 5; j++) {
       tracks.push(tracksList[i][j]);
     }
   }
@@ -208,7 +206,7 @@ function getTrackImportance(trackId, tracksList) {
   for (let i = 0; i < tracksList.length; i++) {
     for (let j = 0; j < tracksList[i].length; j++) {
       if (tracksList[i][j] === trackId) {
-        importance += (7 - (j + 1));
+        importance += (tracksList[i].length - (j + 1));
         break;
       }
     }
@@ -233,19 +231,23 @@ function getCommonTracks(tracksList, cb) {
 
   tracksImportance.sort((a, b) => (b[1] - a[1]));
 
-  for (let i, k = 0; k < tracksList.length * 3 && i < tracksImportance.length; i++, k++) {
-    let skip = false;
-    for (let j = 0; j < tracks.length; j++) {
-      if (tracksImportance[i][0] === tracks[j]) {
-        skip = true;
-        k--;
-      }
-    }
-
-    if (!skip) {
-      tracks.push(tracksImportance[i][0]);
-    }
+  for (let i = 0; i < Math.min(tracksImportance.length, 20); i++) {
+    tracks.push(tracksImportance[i][0]);
   }
+
+  // for (let i, k = 0; k < tracksList.length * 3 && i < tracksImportance.length; i++, k++) {
+  //   let skip = false;
+  //   for (let j = 0; j < tracks.length; j++) {
+  //     if (tracksImportance[i][0] === tracks[j]) {
+  //       skip = true;
+  //       k--;
+  //     }
+  //   }
+
+  //   if (!skip) {
+  //     tracks.push(tracksImportance[i][0]);
+  //   }
+  // }
 
   cb(tracks);
 }
@@ -372,7 +374,7 @@ function getRecommendations(tracksList, cb) {
   getTargets(tracksList, (targets, seeds) => {
     spotifyApi.getRecommendations({ ...targets, seed_tracks: seeds })
       .then((recommendations) => {
-        for (let i = 0; i < 20; i++) {
+        for (let i = 0; i < recommendations.body.tracks.length; i++) {
           recommendedTracks.push(recommendations.body.tracks[i].id);
         }
         cb(recommendedTracks);
@@ -467,6 +469,7 @@ router.post('/generate', (req, res) => {
               // }),
               new Promise((resolve) => {
                 getRecommendations(tracksList, (t) => {
+                  console.log(t);
                   tracks = [...tracks, ...t];
                   resolve();
                 });
