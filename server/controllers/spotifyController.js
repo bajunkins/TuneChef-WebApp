@@ -190,7 +190,7 @@ router.put('/logout', (req, res) => {
 function getTopTracks(tracksList, cb) {
   const tracks = [];
   for (let i = 0; i < tracksList.length; i++) {
-    for (let j = 0; j < 5; j++) {
+    for (let j = 0; j < tracksList[i] / 2; j++) {
       tracks.push(tracksList[i][j]);
     }
   }
@@ -467,13 +467,13 @@ router.post('/generate', (req, res) => {
               //     resolve();
               //   });
               // }),
-              new Promise((resolve) => {
-                getRecommendations(tracksList, (t) => {
-                  console.log(t);
-                  tracks = [...tracks, ...t];
-                  resolve();
-                });
-              }),
+              // new Promise((resolve) => {
+              //   getRecommendations(tracksList, (t) => {
+              //     console.log(t);
+              //     tracks = [...tracks, ...t];
+              //     resolve();
+              //   });
+              // }),
             ]);
 
             addTracks(playlistId, Array.from(new Set(tracks)), res, data.body);
