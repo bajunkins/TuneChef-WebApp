@@ -1,18 +1,4 @@
-.logout {
-  position: absolute;
-  top: 20px;
-  right: 30px;
-  font-size: 24px;
-  font-weight: bold;
-  text-decoration: none;
-  outline: none;
-  cursor: pointer;
-  color: #fff;
-  transition: 200ms;
-}
-.logout:hover {
-  transform: scale(.95);
-}
+
 
 .partyHolder {
   display: flex;

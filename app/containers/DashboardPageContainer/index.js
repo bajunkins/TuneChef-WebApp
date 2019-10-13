@@ -6,14 +6,6 @@ import { Link, Redirect } from 'react-router-dom';
 import arts from '../../arts.css';
 import styles from './styles.css';
 
-const logout = () => {
-  axios.put('/api/spotify/logout')
-    .then(() => {
-      localStorage.removeItem('user');
-      window.location.reload();
-    });
-};
-
 class DashboardPage extends React.Component {
   constructor(props) {
     super(props);
@@ -57,10 +49,6 @@ class DashboardPage extends React.Component {
       <div className={arts.body}>
         <div className={arts.header}>
           Dashboard
-        </div>
-
-        <div className={styles.logout} role="button" tabIndex={0} onClick={logout}>
-          Logout
         </div>
 
         <div className={styles.partyHolder}>
