@@ -156,7 +156,7 @@ function addTracks(playlistId, tracksList) {
   if (tracksList.length < 1) return -1;
 
 
-  const tracks = tracksList.map(x => 'spotify:track:${x.id}');
+  const tracks = tracksList.map(x => `spotify:track:${x.id}`);
   console.log(tracks);
   spotifyApi.addTracksToPlaylist(playlistId, tracks)
     .then((data) => {
