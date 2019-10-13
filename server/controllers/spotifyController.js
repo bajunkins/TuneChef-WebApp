@@ -190,7 +190,7 @@ router.put('/logout', (req, res) => {
 function getTopTracks(tracksList, cb) {
   const tracks = [];
   for (let i = 0; i < tracksList.length; i++) {
-    for (let j = 0; j < tracksList[i] / 2; j++) {
+    for (let j = 0; j < tracksList[i].length / 2; j++) {
       tracks.push(tracksList[i][j]);
     }
   }
