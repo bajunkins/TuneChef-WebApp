@@ -64,6 +64,9 @@ class HomePage extends React.Component {
             TuneChef
           </div>
         </div>
+        <div className={styles.desc}>
+          Using AI to Cook Up Playlists for Any Gathering
+        </div>
         <div className={styles.button} role="button" tabIndex={0} onClick={authorize}>
           Get Started
         </div>

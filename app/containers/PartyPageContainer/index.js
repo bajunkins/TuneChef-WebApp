@@ -22,6 +22,9 @@ class PartyPage extends React.Component {
       id: '',
       users: {},
     };
+
+    this.delete = this.delete.bind(this);
+    this.copyToClipboard = this.copyToClipboard.bind(this);
   }
 
   componentDidMount() {
@@ -95,6 +98,20 @@ class PartyPage extends React.Component {
     });
   }
 
+  delete() {
+    axios.delete('/api/party/id', {
+      params: {
+        id: this.state.id,
+      },
+    })
+      .then(() => {
+        this.props.history.push('/dashboard');
+      })
+      .catch((err) => {
+        console.error(err);
+      });
+  }
+
   render() {
     const user = localStorage.getItem('user');
     if ((user === undefined) || (user == null) || (user === 'undefined') || (this.state.ready && !this.state.name)) {
@@ -135,10 +152,23 @@ class PartyPage extends React.Component {
               </div>
             </div>
 
-            <div className={styles.detailRow} style={{ marginBottom: -10 }}>
+            <div className={styles.detailRow}>
               <i className={classNames(styles.detailIcon, 'fas fa-users')} />
               <div className={styles.detailText}>
                 {`Partygoers: ${Object.keys(this.state.users).length}`}
+              </div>
+            </div>
+
+            <div
+              className={styles.detailRow}
+              role="button"
+              tabIndex={0}
+              onClick={this.delete}
+              style={{ marginBottom: -10, cursor: 'pointer', outline: 'none' }}
+            >
+              <i className={classNames(styles.detailIcon, 'fas fa-times')} />
+              <div className={styles.detailText} style={{ textDecoration: 'underline' }}>
+                Delete Party
               </div>
             </div>
           </div>
@@ -205,6 +235,7 @@ class PartyPage extends React.Component {
 
 PartyPage.propTypes = {
   match: PropTypes.object,
+  history: PropTypes.object,
 };
 
 export default PartyPage;

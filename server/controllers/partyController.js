@@ -42,4 +42,13 @@ router.get('/user', (req, res) => {
   });
 });
 
+router.delete('/id', (req, res) => {
+  Party.deleteOne({ _id: req.query.id }, (err) => {
+    if (err) {
+      res.status(500).send(err);
+    }
+    res.status(200).send('Success!');
+  });
+});
+
 export default router;

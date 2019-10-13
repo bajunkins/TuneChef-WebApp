@@ -473,7 +473,7 @@ router.post('/generate', (req, res) => {
               }),
             ]);
 
-            addTracks(playlistId, tracks, res, data.body);
+            addTracks(playlistId, Array.from(new Set(tracks)), res, data.body);
           }
 
           waitForGets();
