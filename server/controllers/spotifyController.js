@@ -103,7 +103,7 @@ router.put('/joined', (req, res) => {
 
               console.log(user.body.display_name);
               promises.push(new Promise((resolve) => {
-                spotifyApi.getMyTopTracks({ limit: 50 })
+                joinApi.getMyTopTracks({ limit: 50 })
                   .then((response) => {
                     topTracks = response.body.items.map((i) => (i.id));
                     console.log(topTracks);
@@ -115,7 +115,7 @@ router.put('/joined', (req, res) => {
                   });
               }));
               promises.push(new Promise((resolve) => {
-                spotifyApi.getMyTopArtists({ limit: 50 })
+                joinApi.getMyTopArtists({ limit: 50 })
                   .then((response) => {
                     topArtists = response.body.items.map((i) => (i.id));
                     resolve();
