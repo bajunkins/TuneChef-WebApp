@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import axios from 'axios';
 import classNames from 'classnames';
 import moment from 'moment';
-import { Redirect } from 'react-router-dom';
+import { Link, Redirect } from 'react-router-dom';
 
 import TuneChef from '../../images/TuneChef.png';
 import arts from '../../arts.css';
@@ -19,6 +19,7 @@ class PartyPage extends React.Component {
       desc: '',
       author: '',
       date: '',
+      id: '',
       users: {},
     };
   }
@@ -52,6 +53,7 @@ class PartyPage extends React.Component {
           author: response.data.party.author,
           date: moment(response.data.party.date).format('MM/DD/YY'),
           users: response.data.party.users || {},
+          id: response.data.party._id,
           ready: true,
         });
       })
@@ -59,6 +61,37 @@ class PartyPage extends React.Component {
         /* eslint no-console: ["warn", { allow: ["error"] }] */
         console.error(error);
       });
+  }
+
+  componentWillUnmount() {
+    clearTimeout(this.timeout);
+  }
+
+  copyToClipboard(str) {
+    const el = document.createElement('textarea');
+    el.value = str;
+    el.setAttribute('readonly', '');
+    el.style.position = 'absolute';
+    el.style.left = '-9999px';
+    document.body.appendChild(el);
+    const selected = document.getSelection().rangeCount > 0
+      ? document.getSelection().getRangeAt(0)
+      : false;
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+    if (selected) {
+      document.getSelection().removeAllRanges();
+      document.getSelection().addRange(selected);
+    }
+    this.setState({
+      copied: true,
+    }, () => {
+      clearTimeout(this.timeout);
+      this.timeout = setTimeout(() => {
+        this.setState({ copied: false });
+      }, 1000);
+    });
   }
 
   render() {
@@ -72,6 +105,10 @@ class PartyPage extends React.Component {
         <div className={arts.header}>
           {this.state.name}
         </div>
+
+        <Link className={styles.back} to="/dashboard">
+          Back
+        </Link>
 
         <div className={styles.upperRow}>
           <div className={styles.noImage}>
@@ -105,6 +142,46 @@ class PartyPage extends React.Component {
             </div>
           </div>
         </div>
+
+        <div className={styles.linkRow}>
+          <div
+            className={styles.linkContainer}
+            role="button"
+            tabIndex={0}
+            onClick={() => this.copyToClipboard(`localhost:3000/join/${this.state.id}`)}
+          >
+            <i className={classNames(styles.linkIcon, 'fas fa-clipboard')} />
+            <div className={styles.linkText}>
+              {this.state.copied ? 'Copied!' : 'Copy Shareable Link'}
+            </div>
+          </div>
+
+          <Link
+            className={styles.linkContainer}
+            to={`/join/${this.state.id}`}
+          >
+            <i className={classNames(styles.linkIcon, 'fas fa-user-plus')} />
+            <div className={styles.linkText}>
+              Join the Party
+            </div>
+          </Link>
+        </div>
+
+        <div className={styles.usersHeader}>
+          {"Who's In The Party?"}
+        </div>
+        {Object.keys(this.state.users).length > 0 ? Object.entries(this.state.users).map(([key]) => (
+          <div className={styles.userContainer} key={key}>
+            <img src={TuneChef} alt="TuneChef Logo" className={styles.userLogo} draggable={false} />
+            <div className={styles.userText}>
+              {key}
+            </div>
+          </div>
+        )) : (
+          <div className={styles.nobodyText}>
+            {"No One's Partying Yet!"}
+          </div>
+        )}
       </div>
     );
   }
