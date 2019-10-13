@@ -13,5 +13,6 @@ https://tunechef.herokuapp.com
 local:
 http://localhost:3000
 
+might need to check links
 
 then npm run compile

@@ -190,7 +190,7 @@ class PartyPage extends React.Component {
             className={styles.linkContainer}
             role="button"
             tabIndex={0}
-            onClick={() => this.copyToClipboard(`localhost:3000/join/${this.state.id}`)}
+            onClick={() => this.copyToClipboard(`https://tunechef.herokuapp.com/join/${this.state.id}`)}
           >
             <i className={classNames(styles.linkIcon, 'fas fa-clipboard')} />
             <div className={styles.linkText}>

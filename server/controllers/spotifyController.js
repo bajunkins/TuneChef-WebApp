@@ -11,7 +11,7 @@ router.use(bodyParser.json());
 const spotifyCreds = {
   clientId: 'c0d3ae62e6e74f0baa142965fcaa68c6',
   clientSecret: process.env.SPOTIFY_SECRET,
-  redirectUri: 'http://localhost:3000/callback',
+  redirectUri: 'https://tunechef.herokuapp.com/callback',
 };
 
 let spotifyApi = new SpotifyWebApi(spotifyCreds);
@@ -19,7 +19,7 @@ let spotifyApi = new SpotifyWebApi(spotifyCreds);
 const joinCreds = {
   clientId: 'c0d3ae62e6e74f0baa142965fcaa68c6',
   clientSecret: process.env.SPOTIFY_SECRET,
-  redirectUri: 'http://localhost:3000/thanks',
+  redirectUri: 'https://tunechef.herokuapp.com/thanks',
 };
 
 let joinApi = new SpotifyWebApi(joinCreds);
@@ -34,7 +34,7 @@ router.get('/authorize', (req, res) => {
     'user-follow-read',
     'user-top-read',
   ];
-  // const redirectUri = 'http://localhost:3000/callback';
+  // const redirectUri = 'https://tunechef.herokuapp.com/callback';
   // const clientId = 'c0d3ae62e6e74f0baa142965fcaa68c6';
 
   // // Setting credentials can be done in the wrapper's constructor, or using the API object's setters.
