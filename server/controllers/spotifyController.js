@@ -71,6 +71,8 @@ router.post('/generate', (req, res) => {
     .then((data) => {
       playlistId = data.body.id;
       addTopTracks(req.body.tracksList, playlistId);
+      addCommonTracks(req.body.tracksList, playlistId);
+      addCommonArtists(req.body.artistsList, playlistId);
 
     }, (err) => {
       console.log(err);
@@ -82,9 +84,10 @@ router.post('/generate', (req, res) => {
  * Adds passed tracks list to passed playlist id
  */
 function addTracks(playlistId, tracksList) {
+  if (tracksList.length < 1) return -1;
+
 
   const tracks = tracksList.map(x => `spotify:track:${x.id}`);
-  console.log(tracks);
   spotifyApi.addTracksToPlaylist(playlistId, tracks)
     .then((data) => {
       return data;
@@ -101,7 +104,6 @@ function addTracks(playlistId, tracksList) {
  */
 function addTopTracks(tracksList, playlistId) {
   const tracks = [];
-
   for (var i = 0; i < tracksList.length; i++) {
     for (var j = 0; j < 3; j++) {
       tracks.push(tracksList[i][j]);
@@ -114,9 +116,36 @@ function addTopTracks(tracksList, playlistId) {
 /**
  * Returns json object array of tracks that user's have in common
  */
-function addCommonTracks() {
+function addCommonTracks(tracksList, playlistId) {
+  const tracksImportance = [];
+  const tracks = [];
 
-}
+  for (var i = 0; i < tracksList.length; i++) {
+    for (var j = 0; j < tracksList[i].length; j++) {
+      tracksImportance.push([tracksList[i][j].id,getTrackImportance(tracksList[i][j].id, tracksList)]);
+    }
+  }
+
+  tracksImportance.sort(function(a,b){return b[1] - a[1]});
+
+  for (var i, k = 0; k < tracksList.length * 3 && i < tracksImportance.length; i++, k++) {
+    var skip = false;
+    for (var j = 0; j < tracks.length; j++) {
+      if (tracksImportance[i][0] == tracks[j].id) {
+        skip = true;
+        k--;
+      }
+    }
+
+    if (!skip) {
+      tracks.push({
+        id : tracksImportance[i][0]
+      })
+    }
+  }
+
+  addTracks(playlistId, tracks);
+ }
 
 /**
  * Returns track importance
@@ -131,7 +160,7 @@ function getTrackImportance(trackId, tracksList) {
         break;
       }
     }
-  }
+ }
 
   return importance;
 }
@@ -139,14 +168,56 @@ function getTrackImportance(trackId, tracksList) {
 /**
  * Return json object array of tracks from artists that user's have in common
  */
-function addCommonArtists(artistsList) {
+function addCommonArtists(artistsList, playlistId) {
+  const tracks = [];
+  for (var i = 0; i < artistsList.length; i++) {
+    for (var j = 0; j < artistsList[i].length; j++) {
+      addArtistTopTracks(artistsList[i][j].id, getArtistImportance(artistsList[i][j].id,artistsList), playlistId);
+    }
+  }
+}
+
+/**
+ * adds given artist appropriate amount of times to playlist
+ */
+function addArtistTopTracks(artistId, amount, playlistId) {
+
+  spotifyApi.getArtistTopTracks(artistId, 'US')
+  .then(function(data) {
+
+    const tracks = [];
+    for (var i = 0; i < amount && i < data.body.tracks.length; i ++) {
+      tracks.push({
+        id: data.body.tracks[i].id
+      });
+    }
+
+    addTracks(playlistId, tracks);
+
+    }, function(err) {
+    console.log('Something went wrong!', err);
+  });
+
 
 }
 
 /**
  * Returns artist importance
  */
-function getArtistImportance() {
+function getArtistImportance(artistId, artistsList) {
+
+  var importance = -1;
+
+  for (var i = 0; i < artistsList.length; i++) {
+    for (var j = 0; j < artistsList[i].length; j++) {
+      if (artistsList[i][j].id == artistId) {
+        importance ++;
+        break;
+      }
+    }
+  }
+
+  return importance;
 
 }
 
