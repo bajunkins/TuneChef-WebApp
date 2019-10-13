@@ -73,45 +73,17 @@ router.get('/user', (req, res) => {
     });
 });
 
-router.post('/playlist', (req, res) => {
-  console.log(req);
-  spotifyApi.createPlaylist(req.body.userId, req.body.playlistName, { public: true })
+router.post('/generate', (req, res) => {
+  var playlistId = -1;
+  spotifyApi.createPlaylist(req.body.userId, req.body.playlistName, { 'public': true })
     .then((data) => {
-      return res.status(200).send(data);
+      playlistId = data.body.id;
+      addTopTracks(req.body.tracksList, playlistId);
+
     }, (err) => {
       console.log(err);
       return res.status(500).send(err);
     });
-});
-
-router.post('/addSong', (req, res) => {
-  console.log(req);
-  spotifyApi.addTracksToPlaylist(req.body.playlistId, [`spotify:track:${req.body.songId}`])
-    .then((data) => {
-      return res.status(200).send(data);
-    }, (err) => {
-      console.log(err);
-      return res.status(500).send(err);
-    });
-});
-
-router.get('/join', (req, res) => {
-  const scopes = ['user-read-private',
-    'user-read-email',
-    'playlist-read-collaborative',
-    'playlist-modify-private',
-    'playlist-modify-public',
-    'playlist-read-private',
-    'user-follow-read',
-    'user-top-read',
-  ];
-
-  const state = req.query.id;
-
-  // Create the authorization URL
-  const authorizeURL = joinApi.createAuthorizeURL(scopes, state);
-
-  return res.status(200).send(authorizeURL);
 });
 
 router.put('/joined', (req, res) => {
@@ -151,9 +123,120 @@ router.put('/joined', (req, res) => {
           return res.status(200).json({ success: false, result: err });
         });
     },
-    (err) => {
-      return res.status(200).json({ success: false, result: err });
-    });
+      (err) => {
+        return res.status(200).json({ success: false, result: err });
+      });
 });
+
+router.get('/join', (req, res) => {
+  const scopes = ['user-read-private',
+    'user-read-email',
+    'playlist-read-collaborative',
+    'playlist-modify-private',
+    'playlist-modify-public',
+    'playlist-read-private',
+    'user-follow-read',
+    'user-top-read',
+  ];
+
+  const state = req.query.id;
+
+  // Create the authorization URL
+  const authorizeURL = joinApi.createAuthorizeURL(scopes, state);
+
+  return res.status(200).send(authorizeURL);
+});
+
+/**
+ * Adds passed tracks list to passed playlist id
+ */
+function addTracks(playlistId, tracksList) {
+
+  const tracks = tracksList.map(x => 'spotify:track:${x.id}');
+  console.log(tracks);
+  spotifyApi.addTracksToPlaylist(playlistId, tracks)
+    .then((data) => {
+      return data;
+    }, (err) => {
+      console.log(err);
+      return err;
+    });
+  return tracks;
+}
+
+/**
+ * Add top 3 tracks from each user to playlist
+ */
+function addTopTracks(tracksList, playlistId) {
+  const tracks = [];
+
+  for (var i = 0; i < tracksList.length; i++) {
+    for (var j = 0; j < 3; j++) {
+      tracks.push(tracksList[i][j]);
+    }
+  }
+
+  addTracks(playlistId, tracks);
+}
+
+/**
+ * Returns json object array of tracks that user's have in common
+ */
+function addCommonTracks() {
+
+}
+
+/**
+ * Returns track importance
+ */
+function getTrackImportance(trackId, tracksList) {
+  var importance = 0;
+
+  for (var i = 0; i < tracksList.length; i++) {
+    for (var j = 0; j < tracksList[i].length; j++) {
+      if (tracksList[i][j].id == trackId) {
+        importance += (7 - (j + 1));
+        break;
+      }
+    }
+  }
+
+  return importance;
+}
+
+/**
+ * Return json object array of tracks from artists that user's have in common
+ */
+function addCommonArtists(artistsList) {
+
+}
+
+/**
+ * Returns artist importance
+ */
+function getArtistImportance() {
+
+}
+
+/**
+ * Returns json object array generated recommendations
+ */
+function addRecommendations() {
+
+}
+
+/**
+ * Returns json object target parameters for recommendation
+ */
+function getTargets() {
+
+}
+
+/**
+ * Returns json object array of top 5 artists user's have in common
+ */
+function getSeedArtists() {
+
+}
 
 export default router;
