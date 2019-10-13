@@ -101,10 +101,12 @@ router.put('/joined', (req, res) => {
             async function waitForTop() {
               const promises = [];
 
+              console.log(user.body.display_name);
               promises.push(new Promise((resolve) => {
-                spotifyApi.getMyTopTracks({ limit: 50, time_range: 'short_term' })
+                spotifyApi.getMyTopTracks({ limit: 50 })
                   .then((response) => {
                     topTracks = response.body.items.map((i) => (i.id));
+                    console.log(topTracks);
                     resolve();
                   }, (error) => {
                     if (error) {
@@ -113,7 +115,7 @@ router.put('/joined', (req, res) => {
                   });
               }));
               promises.push(new Promise((resolve) => {
-                spotifyApi.getMyTopArtists({ limit: 50, time_range: 'short_term' })
+                spotifyApi.getMyTopArtists({ limit: 50 })
                   .then((response) => {
                     topArtists = response.body.items.map((i) => (i.id));
                     resolve();
