@@ -12,3 +12,6 @@ heroku:
 https://tunechef.herokuapp.com
 local:
 http://localhost:3000
+
+
+then npm run compile

@@ -20,7 +20,6 @@ class PartyPage extends React.Component {
       author: '',
       date: '',
       users: {},
-      numUsers: 0,
     };
   }
 
@@ -46,13 +45,13 @@ class PartyPage extends React.Component {
           this.setState({ ready: true });
           return;
         }
+
         this.setState({
           name: response.data.party.name,
           desc: response.data.party.desc,
           author: response.data.party.author,
           date: moment(response.data.party.date).format('MM/DD/YY'),
-          users: response.data.party.users,
-          numUsers: Object.keys(response.data.party.users).length,
+          users: response.data.party.users || {},
           ready: true,
         });
       })
@@ -101,7 +100,7 @@ class PartyPage extends React.Component {
             <div className={styles.detailRow} style={{ marginBottom: -10 }}>
               <i className={classNames(styles.detailIcon, 'fas fa-users')} />
               <div className={styles.detailText}>
-                {`Partygoers: ${this.state.numUsers}`}
+                {`Partygoers: ${Object.keys(this.state.users).length}`}
               </div>
             </div>
           </div>
