@@ -15,7 +15,15 @@ const credentials = {
 const spotifyApi = new SpotifyWebApi(credentials);
 
 router.get('/authorize', (req, res) => {
-  const scopes = ['user-read-private', 'user-read-email'];
+  const scopes = ['user-read-private',
+  'user-read-email',
+  'playlist-read-collaborative',
+  'playlist-modify-private',
+  'playlist-modify-public',
+  'playlist-read-private',
+  'user-follow-read',
+  'user-top-read',
+  ];
   // const redirectUri = 'http://localhost:3000/callback';
   // const clientId = 'c0d3ae62e6e74f0baa142965fcaa68c6';
 
@@ -55,6 +63,31 @@ router.get('/user', (req, res) => {
     }, (err) => {
       return res.status(500).send(err);
     });
+});
+
+router.post('/playlist', (req, res) => {
+  console.log(req);
+  spotifyApi.createPlaylist(req.body.userId, req.body.playlistName, { 'public': true })
+    .then((data) => {
+      return res.status(200).send(data);
+    }, (err) => {
+      console.log(err);
+      return res.status(500).send(err);
+    });
+
+});
+
+router.post('/addSong', (req, res) => {
+
+  console.log(req);
+  spotifyApi.addTracksToPlaylist(req.body.playlistId, ['spotify:track:' + req.body.songId])
+    .then((data) => {
+      return res.status(200).send(data);
+    }, (err) => {
+      console.log(err);
+      return res.status(500).send(err);
+    });
+
 });
 
 export default router;
