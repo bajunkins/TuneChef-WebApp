@@ -182,11 +182,15 @@ class PartyPage extends React.Component {
         <div className={styles.usersHeader}>
           {"Who's In The Party?"}
         </div>
-        {Object.keys(this.state.users).length > 0 ? Object.entries(this.state.users).map(([key]) => (
+        {Object.values(this.state.users).length > 0 ? Object.entries(this.state.users).map(([key, val]) => (
           <div className={styles.userContainer} key={key}>
-            <img src={TuneChef} alt="TuneChef Logo" className={styles.userLogo} draggable={false} />
+            {val.img ? (
+              <img src={val.img} alt={val.name} className={styles.userLogo} draggable={false} />
+            ) : (
+              <img src={TuneChef} alt="TuneChef Logo" className={styles.userLogo} draggable={false} />
+            )}
             <div className={styles.userText}>
-              {key}
+              {val.name}
             </div>
           </div>
         )) : (

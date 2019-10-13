@@ -1,8 +1,9 @@
 import React from 'react';
 import axios from 'axios';
-import classNames from 'classnames';
+import PropTypes from 'prop-types';
 import { Link, Redirect } from 'react-router-dom';
 
+import { viewportToPixels } from '../../tools/helpers';
 import Loader from '../../components/Loader';
 import arts from '../../arts.css';
 import styles from './styles.css';
@@ -13,7 +14,8 @@ class PlaylistPage extends React.Component {
 
     this.state = {
       ready: false,
-      name: '',
+      id: '',
+      url: '',
     };
   }
 
@@ -29,19 +31,19 @@ class PlaylistPage extends React.Component {
       return;
     }
 
-    axios.put('/api/spotify/generate', {
+    axios.post('/api/spotify/generate', {
       id,
       user,
     })
       .then((response) => {
-        console.log(response.data);
         if (!response.data.success) {
           this.setState({ ready: true });
           return;
         }
 
         this.setState({
-          name: response.data.result.name,
+          url: response.data.result.external_urls.spotify,
+          id: response.data.result.id,
           ready: true,
         });
       })
@@ -52,20 +54,42 @@ class PlaylistPage extends React.Component {
   }
 
   render() {
-    // const user = localStorage.getItem('user');
-    // if ((user === undefined) || (user == null) || (user === 'undefined') || (this.state.ready && !this.state.name)) {
-    //   return <Redirect to="/" />;
-    // }
+    const user = localStorage.getItem('user');
+    if ((user === undefined) || (user == null) || (user === 'undefined') || (this.state.ready && !this.state.id)) {
+      return <Redirect to="/" />;
+    }
 
-    return (
-      <div className={arts.body} style={{ justifyContent: 'center', alignItems: !this.state.ready ? 'center' : null }}>
-        {this.state.ready ? (
-          <div>
-            Cool
+    return this.state.ready ? (
+      <div className={arts.body}>
+        <div className={arts.header}>
+          The TechChef has cooked up your playlist!
+        </div>
+        <Link className={styles.back} to="/dashboard">
+          Back
+        </Link>
+
+        <div className={styles.openRow}>
+          <a href={this.state.url} target="_blank" rel="noopener noreferrer" className={styles.open}>
+            Open Spotify
+          </a>
+          <div className={styles.openText}>
+            or just listen to it below!
           </div>
-        ) : (
-          <Loader />
-        )}
+        </div>
+
+        <iframe
+          src={`https://open.spotify.com/embed/playlist/${this.state.id}`}
+          title="Playlist"
+          width={viewportToPixels('60vw')}
+          height={viewportToPixels('60vh')}
+          frameBorder="0"
+          allow="encrypted-media"
+          className={styles.playlist}
+        />
+      </div>
+    ) : (
+      <div className={arts.body} style={{ justifyContent: 'center', alignItems: 'center' }}>
+        <Loader />
       </div>
     );
   }

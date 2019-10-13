@@ -93,23 +93,59 @@ router.put('/joined', (req, res) => {
             if (party.users) {
               users = JSON.parse(JSON.stringify(party.users));
             }
+            let topTracks = [];
+            let topArtists = [];
 
-            users[user.body.id] = {
-              name: user.body.display_name,
-              img: user.body.images && user.body.images[0] ? user.body.images[0].url : '',
-            };
+            // get the top artists and tracks for the user info in the database
+            async function waitForTop() {
+              const promises = [];
 
-            Party.findOneAndUpdate(
-              { _id: req.body.id },
-              { users },
-              { new: true },
-              (error, newParty) => {
-                if (error) {
-                  return res.status(200).json({ success: false, result: err });
-                }
-                return res.status(200).json({ success: true, result: newParty });
-              },
-            );
+              promises.push(new Promise((resolve) => {
+                spotifyApi.getMyTopTracks({ limit: 50, time_range: 'short_term' })
+                  .then((response) => {
+                    topTracks = response.body.items;
+                    resolve();
+                  }, (error) => {
+                    if (error) {
+                      console.error(error);
+                    }
+                  });
+              }));
+              promises.push(new Promise((resolve) => {
+                spotifyApi.getMyTopArtists({ limit: 50, time_range: 'short_term' })
+                  .then((response) => {
+                    topArtists = response.body.items;
+                    resolve();
+                  }, (error) => {
+                    if (error) {
+                      console.error(error);
+                    }
+                  });
+              }));
+
+              await Promise.all(promises);
+
+              users[user.body.id] = {
+                name: user.body.display_name,
+                img: user.body.images && user.body.images[0] ? user.body.images[0].url : '',
+                topTracks,
+                topArtists,
+              };
+
+              Party.findOneAndUpdate(
+                { _id: req.body.id },
+                { users },
+                { new: true },
+                (error, newParty) => {
+                  if (error) {
+                    return res.status(200).json({ success: false, result: err });
+                  }
+                  return res.status(200).json({ success: true, result: newParty });
+                },
+              );
+            }
+
+            waitForTop();
           });
         }, (err) => {
           return res.status(200).json({ success: false, result: err });
@@ -146,50 +182,6 @@ router.put('/logout', (req, res) => {
   joinApi = new SpotifyWebApi(joinCreds);
   return res.status(200).send('Success!');
 });
-
-router.get('/top', (req, res) => {
-
-  let topTracks = [];
-  let topArtists = [];
-
-  async function waitForTop() {
-    const promises = [];
-
-    promises.push(new Promise((resolve) => {
-      spotifyApi.getMyTopTracks({limit: 50, time_range: 'short_term'})
-        .then((data) => {
-          topTracks = data.body.items;
-          resolve();
-        }, (err) => {
-          if (err) {
-            console.error(err);
-          }
-        })
-    }))
-    promises.push(new Promise((resolve) => {
-      spotifyApi.getMyTopArtists({limit: 50, time_range: 'short_term'})
-        .then((data) => {
-          topArtists = data.body.items;
-          resolve();
-        }, (err) => {
-          if (err) {
-            console.error(err);
-          }
-        })
-    }))
-
-    await Promise.all(promises);
-
-    return {
-      topTracks: topTracks,
-      topArtists: topArtists,
-    };
-
-  }
-
-  waitForTop();
-
-})
 
 /**
  * Get top 3 tracks from each user to playlist
@@ -248,9 +240,7 @@ function getCommonTracks(tracksList, cb) {
     }
 
     if (!skip) {
-      tracks.push({
-        id: tracksImportance[i][0],
-      });
+      tracks.push(tracksImportance[i][0]);
     }
   }
 
@@ -403,13 +393,13 @@ function getRecommendations(tracksList, cb) {
  * Return json object array of tracks from artists that user's have in common
  */
 function getCommonArtists(artistsList, cb) {
-  const tracks = [];
+  let tracks = [];
   const promises = [];
   for (let i = 0; i < artistsList.length; i++) {
     for (let j = 0; j < artistsList[i].length; j++) {
       promises.push(new Promise((resolve) => {
         getArtistTopTracks(artistsList[i][j].id, getArtistImportance(artistsList[i][j].id, artistsList), (t) => {
-          tracks.push(t);
+          tracks = [...tracks, ...t];
           resolve();
         });
       }));
@@ -428,10 +418,10 @@ function getCommonArtists(artistsList, cb) {
 /**
  * Adds passed tracks list to passed playlist id
  */
-function addTracks(playlistId, tracksList, res) {
+function addTracks(playlistId, tracksList, res, data) {
   const tracks = tracksList.map((x) => `spotify:track:${x}`);
   spotifyApi.addTracksToPlaylist(playlistId, tracks)
-    .then((data) => {
+    .then(() => {
       return res.status(200).json({ success: true, result: data });
     }, (err) => {
       return res.status(500).json({ success: false, result: err });
@@ -454,36 +444,36 @@ router.post('/generate', (req, res) => {
       spotifyApi.createPlaylist(req.body.user, party.name, { public: true })
         .then((data) => {
           playlistId = data.body.id;
-          const tracks = [];
+          let tracks = [];
           async function waitForGets() {
             await Promise.all([
               new Promise((resolve) => {
                 getTopTracks(tracksList, (t) => {
-                  tracks.push(t);
+                  tracks = [...tracks, ...t];
                   resolve();
                 });
               }),
               new Promise((resolve) => {
                 getCommonTracks(tracksList, (t) => {
-                  tracks.push(t);
+                  tracks = [...tracks, ...t];
                   resolve();
                 });
               }),
               new Promise((resolve) => {
                 getCommonArtists(artistsList, (t) => {
-                  tracks.push(t);
+                  tracks = [...tracks, ...t];
                   resolve();
                 });
               }),
               new Promise((resolve) => {
                 getRecommendations(tracksList, (t) => {
-                  tracks.push(t);
+                  tracks = [...tracks, ...t];
                   resolve();
                 });
               }),
             ]);
 
-            addTracks(playlistId, tracks, res);
+            addTracks(playlistId, tracks, res, data.body);
           }
 
           waitForGets();
