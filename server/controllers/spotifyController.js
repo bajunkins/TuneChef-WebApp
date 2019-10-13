@@ -11,7 +11,7 @@ router.use(bodyParser.json());
 const credentials = {
   clientId: 'c0d3ae62e6e74f0baa142965fcaa68c6',
   clientSecret: process.env.SPOTIFY_SECRET,
-  redirectUri: 'http://localhost:3000/callback',
+  redirectUri: 'https://tunechef.herokuapp.com/callback',
 };
 
 const spotifyApi = new SpotifyWebApi(credentials);
@@ -19,7 +19,7 @@ const spotifyApi = new SpotifyWebApi(credentials);
 const joinApi = new SpotifyWebApi({
   clientId: 'c0d3ae62e6e74f0baa142965fcaa68c6',
   clientSecret: process.env.SPOTIFY_SECRET,
-  redirectUri: 'http://localhost:3000/thanks',
+  redirectUri: 'https://tunechef.herokuapp.com/thanks',
 });
 
 router.get('/authorize', (req, res) => {

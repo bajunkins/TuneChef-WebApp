@@ -7,4 +7,8 @@ index.html for heroku
   <script src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
 <% } %>
 
-and more dist inside of app
+and change callbacks in spotifyController to use correct domain name
+heroku:
+https://tunechef.herokuapp.com
+local:
+http://localhost:3000
