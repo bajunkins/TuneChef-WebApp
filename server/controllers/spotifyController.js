@@ -94,7 +94,10 @@ router.put('/joined', (req, res) => {
               users = JSON.parse(JSON.stringify(party.users));
             }
 
-            users[user.body.display_name] = 'yay';
+            users[user.body.id] = {
+              name: user.body.display_name,
+              img: user.body.images && user.body.images[0] ? user.body.images[0].url : '',
+            };
 
             Party.findOneAndUpdate(
               { _id: req.body.id },
@@ -145,30 +148,16 @@ router.put('/logout', (req, res) => {
 });
 
 /**
- * Adds passed tracks list to passed playlist id
+ * Get top 3 tracks from each user to playlist
  */
-function addTracks(playlistId, tracksList) {
-  const tracks = tracksList.map(x => `spotify:track:${x}`);
-  spotifyApi.addTracksToPlaylist(playlistId, tracks)
-    .then((data) => {
-      return data;
-    }, (err) => {
-      return err;
-    });
-  return tracks;
-}
-
-/**
- * Add top 3 tracks from each user to playlist
- */
-function addTopTracks(tracksList, playlistId) {
+function getTopTracks(tracksList, cb) {
   const tracks = [];
   for (let i = 0; i < tracksList.length; i++) {
     for (let j = 0; j < 3; j++) {
       tracks.push(tracksList[i][j].id);
     }
   }
-  addTracks(playlistId, tracks);
+  cb(tracks);
 }
 
 /**
@@ -193,7 +182,7 @@ function getTrackImportance(trackId, tracksList) {
 /**
  * Returns json object array of tracks that user's have in common
  */
-function addCommonTracks(tracksList, playlistId) {
+function getCommonTracks(tracksList, cb) {
   const tracksImportance = [];
   const tracks = [];
 
@@ -221,13 +210,13 @@ function addCommonTracks(tracksList, playlistId) {
     }
   }
 
-  addTracks(playlistId, tracks);
+  cb(tracks);
 }
 
 /**
- * adds given artist appropriate amount of times to playlist
+ * gets given artist appropriate amount of times to playlist
  */
-function addArtistTopTracks(artistId, amount, playlistId) {
+function getArtistTopTracks(artistId, amount, cb) {
   spotifyApi.getArtistTopTracks(artistId, 'US')
     .then((data) => {
       const tracks = [];
@@ -237,7 +226,7 @@ function addArtistTopTracks(artistId, amount, playlistId) {
         });
       }
 
-      addTracks(playlistId, tracks);
+      cb(tracks);
     }, (err) => {
       /* eslint no-console: ["warn", { allow: ["error"] }] */
       console.error(err);
@@ -342,7 +331,7 @@ function getTargets(tracksList, cb) {
 /**
  * Returns json object array generated recommendations
  */
-function addRecommendations(tracksList, cb) {
+function getRecommendations(tracksList, cb) {
   const recommendedTracks = [];
 
   getTargets(tracksList, (targets, seeds) => {
@@ -369,27 +358,97 @@ function addRecommendations(tracksList, cb) {
 /**
  * Return json object array of tracks from artists that user's have in common
  */
-function addCommonArtists(artistsList, playlistId) {
+function getCommonArtists(artistsList, cb) {
+  const tracks = [];
+  const promises = [];
   for (let i = 0; i < artistsList.length; i++) {
     for (let j = 0; j < artistsList[i].length; j++) {
-      addArtistTopTracks(artistsList[i][j].id, getArtistImportance(artistsList[i][j].id, artistsList), playlistId);
+      promises.push(new Promise((resolve) => {
+        getArtistTopTracks(artistsList[i][j].id, getArtistImportance(artistsList[i][j].id, artistsList), (t) => {
+          tracks.push(t);
+          resolve();
+        });
+      }));
     }
   }
+
+  async function waitForArtists() {
+    await Promise.all(promises);
+    cb(tracks);
+  }
+
+  waitForArtists();
+}
+
+
+/**
+ * Adds passed tracks list to passed playlist id
+ */
+function addTracks(playlistId, tracksList, res) {
+  const tracks = tracksList.map((x) => `spotify:track:${x}`);
+  spotifyApi.addTracksToPlaylist(playlistId, tracks)
+    .then((data) => {
+      return res.status(200).json({ success: true, result: data });
+    }, (err) => {
+      return res.status(500).json({ success: false, result: err });
+    });
+  return tracks;
 }
 
 router.post('/generate', (req, res) => {
   let playlistId = -1;
-  spotifyApi.createPlaylist(req.body.userId, req.body.playlistName, { public: true })
-    .then((data) => {
-      playlistId = data.body.id;
-      addTopTracks(req.body.tracksList, playlistId);
-      addCommonTracks(req.body.tracksList, playlistId);
-      addCommonArtists(req.body.artistsList, playlistId);
-      addRecommendations(req.body.tracksList, (tracks) => {
-        addTracks(playlistId, tracks);
+  const tracksList = [];
+  const artistsList = [];
+
+  Party.findOne({ _id: req.body.id })
+    .then((party) => {
+      Object.values(party.users).forEach((user) => {
+        tracksList.push(user.topTracks);
+        artistsList.push(user.topArtists);
       });
-    }, (err) => {
-      return res.status(500).send(err);
+
+      spotifyApi.createPlaylist(req.body.user, party.name, { public: true })
+        .then((data) => {
+          playlistId = data.body.id;
+          const tracks = [];
+          async function waitForGets() {
+            await Promise.all([
+              new Promise((resolve) => {
+                getTopTracks(tracksList, (t) => {
+                  tracks.push(t);
+                  resolve();
+                });
+              }),
+              new Promise((resolve) => {
+                getCommonTracks(tracksList, (t) => {
+                  tracks.push(t);
+                  resolve();
+                });
+              }),
+              new Promise((resolve) => {
+                getCommonArtists(artistsList, (t) => {
+                  tracks.push(t);
+                  resolve();
+                });
+              }),
+              new Promise((resolve) => {
+                getRecommendations(tracksList, (t) => {
+                  tracks.push(t);
+                  resolve();
+                });
+              }),
+            ]);
+
+            addTracks(playlistId, tracks, res);
+          }
+
+          waitForGets();
+        }, (err) => {
+          return res.status(200).json({ success: false, result: err });
+        });
+    })
+    .catch((err) => {
+      return res.status(200).json({ success: false, result: err });
     });
 });
 

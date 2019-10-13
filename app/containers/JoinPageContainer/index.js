@@ -24,6 +24,7 @@ class JoinPage extends React.Component {
   componentDidMount() {
     const id = this.props.match.params.id;
     if (id == null) {
+      this.setState({ ready: true });
       return;
     }
 

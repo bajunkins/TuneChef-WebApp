@@ -8,6 +8,7 @@ import CreatePage from './containers/CreatePageContainer';
 import PartyPage from './containers/PartyPageContainer';
 import JoinPage from './containers/JoinPageContainer';
 import ThanksPage from './containers/ThanksPageContainer';
+import PlayListPage from './containers/PlaylistPageContainer';
 
 import './fonts.css';
 
@@ -20,6 +21,7 @@ ReactDOM.render(
       <Route exact path="/party/:id" component={PartyPage} />
       <Route exact path="/join/:id" component={JoinPage} />
       <Route exact path="/thanks" component={ThanksPage} />
+      <Route exact path="/playlist/:id" component={PlayListPage} />
       <Route component={HomePage} />
     </Switch>
   </BrowserRouter>,
