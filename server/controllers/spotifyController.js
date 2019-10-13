@@ -93,6 +93,7 @@ router.put('/joined', (req, res) => {
             if (party.users) {
               users = JSON.parse(JSON.stringify(party.users));
             }
+
             let topTracks = [];
             let topArtists = [];
 
@@ -103,7 +104,7 @@ router.put('/joined', (req, res) => {
               promises.push(new Promise((resolve) => {
                 spotifyApi.getMyTopTracks({ limit: 50, time_range: 'short_term' })
                   .then((response) => {
-                    topTracks = response.body.items;
+                    topTracks = response.body.items.map((i) => (i.id));
                     resolve();
                   }, (error) => {
                     if (error) {
@@ -114,7 +115,7 @@ router.put('/joined', (req, res) => {
               promises.push(new Promise((resolve) => {
                 spotifyApi.getMyTopArtists({ limit: 50, time_range: 'short_term' })
                   .then((response) => {
-                    topArtists = response.body.items;
+                    topArtists = response.body.items.map((i) => (i.id));
                     resolve();
                   }, (error) => {
                     if (error) {
@@ -190,7 +191,7 @@ function getTopTracks(tracksList, cb) {
   const tracks = [];
   for (let i = 0; i < tracksList.length; i++) {
     for (let j = 0; j < 3; j++) {
-      tracks.push(tracksList[i][j].id);
+      tracks.push(tracksList[i][j]);
     }
   }
   cb(tracks);
@@ -204,7 +205,7 @@ function getTrackImportance(trackId, tracksList) {
 
   for (let i = 0; i < tracksList.length; i++) {
     for (let j = 0; j < tracksList[i].length; j++) {
-      if (tracksList[i][j].id === trackId) {
+      if (tracksList[i][j] === trackId) {
         importance += (7 - (j + 1));
         break;
       }
@@ -224,7 +225,7 @@ function getCommonTracks(tracksList, cb) {
 
   for (let i = 0; i < tracksList.length; i++) {
     for (let j = 0; j < tracksList[i].length; j++) {
-      tracksImportance.push([tracksList[i][j].id, getTrackImportance(tracksList[i][j].id, tracksList)]);
+      tracksImportance.push([tracksList[i][j], getTrackImportance(tracksList[i][j], tracksList)]);
     }
   }
 
@@ -233,7 +234,7 @@ function getCommonTracks(tracksList, cb) {
   for (let i, k = 0; k < tracksList.length * 3 && i < tracksImportance.length; i++, k++) {
     let skip = false;
     for (let j = 0; j < tracks.length; j++) {
-      if (tracksImportance[i][0] === tracks[j].id) {
+      if (tracksImportance[i][0] === tracks[j]) {
         skip = true;
         k--;
       }
@@ -255,9 +256,7 @@ function getArtistTopTracks(artistId, amount, cb) {
     .then((data) => {
       const tracks = [];
       for (let i = 0; i < amount && i < data.body.tracks.length; i++) {
-        tracks.push({
-          id: data.body.tracks[i].id,
-        });
+        tracks.push(data.body.tracks[i].id);
       }
 
       cb(tracks);
@@ -318,10 +317,10 @@ function getTargets(tracksList, cb) {
         /* eslint no-loop-func: ["off"] */
         promises.push(new Promise((resolve) => {
           if (seedCount < 5 && !seeds.includes(tracksList[i][j])) {
-            seeds.push(tracksList[i][j].id);
+            seeds.push(tracksList[i][j]);
             seedCount++;
           }
-          spotifyApi.getAudioFeaturesForTrack(tracksList[i][j].id)
+          spotifyApi.getAudioFeaturesForTrack(tracksList[i][j])
             .then((features) => {
               targets.target_duration_ms += features.body.duration_ms;
               targets.target_key += features.body.key;
@@ -440,7 +439,6 @@ router.post('/generate', (req, res) => {
         tracksList.push(user.topTracks);
         artistsList.push(user.topArtists);
       });
-
       spotifyApi.createPlaylist(req.body.user, party.name, { public: true })
         .then((data) => {
           playlistId = data.body.id;
@@ -459,12 +457,12 @@ router.post('/generate', (req, res) => {
                   resolve();
                 });
               }),
-              new Promise((resolve) => {
-                getCommonArtists(artistsList, (t) => {
-                  tracks = [...tracks, ...t];
-                  resolve();
-                });
-              }),
+              // new Promise((resolve) => {
+              //   getCommonArtists(artistsList, (t) => {
+              //     tracks = [...tracks, ...t];
+              //     resolve();
+              //   });
+              // }),
               new Promise((resolve) => {
                 getRecommendations(tracksList, (t) => {
                   tracks = [...tracks, ...t];
