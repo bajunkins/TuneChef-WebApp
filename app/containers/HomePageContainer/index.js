@@ -37,17 +37,15 @@ class HomePage extends React.Component {
             return;
           }
 
-          // testing out the user call
-          // axios.get('/api/spotify/user', {
-          // })
-          //   .then((res) => {
-          //     console.log(res);
-          //   })
-          //   .catch((err) => {
-          //     console.error(err);
-          //   });
-
-          this.props.history.push('/dashboard');
+          axios.get('/api/spotify/user', {
+          })
+            .then((res) => {
+              localStorage.setItem('user', res.data.body.display_name);
+              this.props.history.push('/dashboard');
+            })
+            .catch((err) => {
+              console.error(err);
+            });
         })
         .catch((err) => {
           /* eslint no-console: ["warn", { allow: ["error"] }] */
@@ -63,7 +61,7 @@ class HomePage extends React.Component {
           TuneChef
         </div>
         <div className={styles.button} role="button" tabIndex={0} onClick={authorize}>
-          Join Now
+          Get Started
         </div>
       </div>
     );

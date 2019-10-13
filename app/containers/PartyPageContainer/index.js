@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import axios from 'axios';
 import classNames from 'classnames';
 import { Link, Redirect } from 'react-router-dom';
@@ -6,11 +7,14 @@ import { Link, Redirect } from 'react-router-dom';
 import arts from '../../arts.css';
 import styles from './styles.css';
 
-class DashboardPage extends React.Component {
+class PartyPage extends React.Component {
   constructor(props) {
     super(props);
 
-    this.state = {};
+    this.state = {
+      ready: false,
+      name: '',
+    };
   }
 
   componentDidMount() {
@@ -19,13 +23,18 @@ class DashboardPage extends React.Component {
       return;
     }
 
-    axios.get('/api/party/user', {
+    const id = this.props.match.params.id;
+    axios.get('/api/party/id', {
       params: {
-        user,
+        id,
       },
     })
       .then((response) => {
         console.log(response);
+        this.setState({
+          name: response.data.party.name,
+          ready: true,
+        });
       })
       .catch((error) => {
         /* eslint no-console: ["warn", { allow: ["error"] }] */
@@ -35,27 +44,22 @@ class DashboardPage extends React.Component {
 
   render() {
     const user = localStorage.getItem('user');
-    if ((user === undefined) || (user == null) || (user === 'undefined')) {
+    if ((user === undefined) || (user == null) || (user === 'undefined') || (this.state.ready && !this.state.name)) {
       return <Redirect to="/" />;
     }
 
     return (
       <div className={arts.body}>
         <div className={arts.header}>
-          Dashboard
-        </div>
-
-        <div className={styles.partyHolder}>
-          <Link className={styles.newPartyContainer} to="/create">
-            <i className={classNames('fas fa-plus', styles.newPartyIcon)} />
-            <div className={styles.newPartyText}>
-              Create a New Party
-            </div>
-          </Link>
+          {this.state.name}
         </div>
       </div>
     );
   }
 }
 
-export default DashboardPage;
+PartyPage.propTypes = {
+  match: PropTypes.object,
+};
+
+export default PartyPage;

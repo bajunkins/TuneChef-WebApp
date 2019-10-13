@@ -1,8 +1,9 @@
 import React from 'react';
 import isMobile from 'react-device-detect';
-// import axios from 'axios';
+import axios from 'axios';
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
+import { Redirect } from 'react-router-dom';
 
 import Loader from '../../components/Loader';
 import arts from '../../arts.css';
@@ -22,10 +23,6 @@ class CreatePage extends React.Component {
     this.onCreate = this.onCreate.bind(this);
   }
 
-  componentDidMount() {
-
-  }
-
   onCreate(e) {
     e.preventDefault();
     this.setState({ loading: true });
@@ -39,14 +36,29 @@ class CreatePage extends React.Component {
     this.setState({ nameError });
 
     if (!nameError) {
-      // create the party
-      this.props.history.push('/view');
+      axios.post('/api/party/create', {
+        name: this.state.name,
+        desc: this.state.desc,
+        author: localStorage.getItem('user'),
+      })
+        .then((response) => {
+          this.props.history.push(`/party/${response.data._id}`);
+        })
+        .catch((error) => {
+          /* eslint no-console: ["warn", { allow: ["error"] }] */
+          console.error(error);
+        });
     } else {
       this.setState({ loading: false });
     }
   }
 
   render() {
+    const user = localStorage.getItem('user');
+    if ((user === undefined) || (user == null) || (user === 'undefined')) {
+      return <Redirect to="/" />;
+    }
+
     return (
       <div className={arts.body}>
         <div className={arts.header}>
