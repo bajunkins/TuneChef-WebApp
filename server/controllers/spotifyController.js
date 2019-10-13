@@ -75,47 +75,6 @@ router.get('/user', (req, res) => {
     });
 });
 
-router.post('/playlist', (req, res) => {
-  console.log(req);
-  spotifyApi.createPlaylist(req.body.userId, req.body.playlistName, { public: true })
-    .then((data) => {
-      return res.status(200).send(data);
-    }, (err) => {
-      console.log(err);
-      return res.status(500).send(err);
-    });
-});
-
-router.post('/addSong', (req, res) => {
-  console.log(req);
-  spotifyApi.addTracksToPlaylist(req.body.playlistId, [`spotify:track:${req.body.songId}`])
-    .then((data) => {
-      return res.status(200).send(data);
-    }, (err) => {
-      console.log(err);
-      return res.status(500).send(err);
-    });
-});
-
-router.get('/join', (req, res) => {
-  const scopes = ['user-read-private',
-    'user-read-email',
-    'playlist-read-collaborative',
-    'playlist-modify-private',
-    'playlist-modify-public',
-    'playlist-read-private',
-    'user-follow-read',
-    'user-top-read',
-  ];
-
-  const state = req.query.id;
-
-  // Create the authorization URL
-  const authorizeURL = joinApi.createAuthorizeURL(scopes, state);
-
-  return res.status(200).send(authorizeURL);
-});
-
 router.put('/joined', (req, res) => {
   // Retrieve an access token and a refresh token
   joinApi.authorizationCodeGrant(req.body.code)
@@ -158,12 +117,280 @@ router.put('/joined', (req, res) => {
     });
 });
 
+router.get('/join', (req, res) => {
+  const scopes = ['user-read-private',
+    'user-read-email',
+    'playlist-read-collaborative',
+    'playlist-modify-private',
+    'playlist-modify-public',
+    'playlist-read-private',
+    'user-follow-read',
+    'user-top-read',
+  ];
+
+  const state = req.query.id;
+
+  // Create the authorization URL
+  const authorizeURL = joinApi.createAuthorizeURL(scopes, state);
+
+  return res.status(200).send(authorizeURL);
+});
+
 router.put('/logout', (req, res) => {
   spotifyApi.resetCredentials();
   joinApi.resetCredentials();
   spotifyApi = new SpotifyWebApi(spotifyCreds);
   joinApi = new SpotifyWebApi(joinCreds);
   return res.status(200).send('Success!');
+});
+
+/**
+ * Adds passed tracks list to passed playlist id
+ */
+function addTracks(playlistId, tracksList) {
+  const tracks = tracksList.map(x => `spotify:track:${x}`);
+  spotifyApi.addTracksToPlaylist(playlistId, tracks)
+    .then((data) => {
+      return data;
+    }, (err) => {
+      return err;
+    });
+  return tracks;
+}
+
+/**
+ * Add top 3 tracks from each user to playlist
+ */
+function addTopTracks(tracksList, playlistId) {
+  const tracks = [];
+  for (let i = 0; i < tracksList.length; i++) {
+    for (let j = 0; j < 3; j++) {
+      tracks.push(tracksList[i][j].id);
+    }
+  }
+  addTracks(playlistId, tracks);
+}
+
+/**
+ * Returns track importance
+ */
+function getTrackImportance(trackId, tracksList) {
+  let importance = 0;
+
+  for (let i = 0; i < tracksList.length; i++) {
+    for (let j = 0; j < tracksList[i].length; j++) {
+      if (tracksList[i][j].id === trackId) {
+        importance += (7 - (j + 1));
+        break;
+      }
+    }
+  }
+
+  return importance;
+}
+
+
+/**
+ * Returns json object array of tracks that user's have in common
+ */
+function addCommonTracks(tracksList, playlistId) {
+  const tracksImportance = [];
+  const tracks = [];
+
+  for (let i = 0; i < tracksList.length; i++) {
+    for (let j = 0; j < tracksList[i].length; j++) {
+      tracksImportance.push([tracksList[i][j].id, getTrackImportance(tracksList[i][j].id, tracksList)]);
+    }
+  }
+
+  tracksImportance.sort((a, b) => (b[1] - a[1]));
+
+  for (let i, k = 0; k < tracksList.length * 3 && i < tracksImportance.length; i++, k++) {
+    let skip = false;
+    for (let j = 0; j < tracks.length; j++) {
+      if (tracksImportance[i][0] === tracks[j].id) {
+        skip = true;
+        k--;
+      }
+    }
+
+    if (!skip) {
+      tracks.push({
+        id: tracksImportance[i][0],
+      });
+    }
+  }
+
+  addTracks(playlistId, tracks);
+}
+
+/**
+ * adds given artist appropriate amount of times to playlist
+ */
+function addArtistTopTracks(artistId, amount, playlistId) {
+  spotifyApi.getArtistTopTracks(artistId, 'US')
+    .then((data) => {
+      const tracks = [];
+      for (let i = 0; i < amount && i < data.body.tracks.length; i++) {
+        tracks.push({
+          id: data.body.tracks[i].id,
+        });
+      }
+
+      addTracks(playlistId, tracks);
+    }, (err) => {
+      /* eslint no-console: ["warn", { allow: ["error"] }] */
+      console.error(err);
+    });
+}
+
+/**
+ * Returns artist importance
+ */
+function getArtistImportance(artistId, artistsList) {
+  let importance = -1;
+
+  for (let i = 0; i < artistsList.length; i++) {
+    for (let j = 0; j < artistsList[i].length; j++) {
+      if (artistsList[i][j].id === artistId) {
+        importance++;
+        break;
+      }
+    }
+  }
+
+  return importance;
+}
+
+/**
+ * Returns json object target parameters for recommendation
+ */
+function getTargets(tracksList, cb) {
+  let total = 0;
+
+  const seeds = [];
+  let seedCount = 0;
+
+  const targets = {
+    target_duration_ms: 0,
+    target_key: 0,
+    target_mode: 0,
+    target_time_signature: 0,
+    target_acousticness: 0,
+    target_danceability: 0,
+    target_energy: 0,
+    target_instrumentalness: 0,
+    target_liveness: 0,
+    target_loudness: 0,
+    target_speechiness: 0,
+    target_valence: 0,
+    target_tempo: 0,
+  };
+
+  async function waitForAllTracks() {
+    const promises = [];
+
+    for (let i = 0; i < tracksList.length; i++) {
+      for (let j = 0; j < tracksList[i].length; j++) {
+        /* eslint no-loop-func: ["off"] */
+        promises.push(new Promise((resolve) => {
+          if (seedCount < 5 && !seeds.includes(tracksList[i][j])) {
+            seeds.push(tracksList[i][j].id);
+            seedCount++;
+          }
+          spotifyApi.getAudioFeaturesForTrack(tracksList[i][j].id)
+            .then((features) => {
+              targets.target_duration_ms += features.body.duration_ms;
+              targets.target_key += features.body.key;
+              targets.target_mode += features.body.mode;
+              targets.target_time_signature += features.body.time_signature;
+              targets.target_acousticness += features.body.acousticness;
+              targets.target_danceability += features.body.danceability;
+              targets.target_energy += features.body.energy;
+              targets.target_instrumentalness += features.body.instrumentalness;
+              targets.target_liveness += features.body.liveness;
+              targets.target_loudness += features.body.loudness;
+              targets.target_speechiness += features.body.speechiness;
+              targets.target_valence += features.body.valence;
+              targets.target_tempo += features.body.tempo;
+              total++;
+              resolve();
+            }, () => {
+              resolve();
+            });
+        }));
+      }
+    }
+
+
+    await Promise.all(promises);
+
+    if (total !== 0) {
+      Object.entries(targets).forEach(([key, value]) => {
+        targets[key] = Math.round(value / total);
+      });
+      // targets.target_key = Math.round(targets.target_key);
+      // targets.target_mode = Math.round(targets.target_mode);
+    }
+
+    cb(targets, seeds);
+  }
+
+  waitForAllTracks();
+}
+
+/**
+ * Returns json object array generated recommendations
+ */
+function addRecommendations(tracksList, cb) {
+  const recommendedTracks = [];
+
+  getTargets(tracksList, (targets, seeds) => {
+    spotifyApi.getRecommendations({ ...targets, seed_tracks: seeds })
+      .then((recommendations) => {
+        for (let i = 0; i < 20; i++) {
+          recommendedTracks.push(recommendations.body.tracks[i].id);
+        }
+        cb(recommendedTracks);
+      }, (err) => {
+        return err;
+      });
+  });
+}
+
+/**
+ * Returns json object array of top 5 artists user's have in common
+ */
+// function getSeedArtists() {
+
+// }
+
+
+/**
+ * Return json object array of tracks from artists that user's have in common
+ */
+function addCommonArtists(artistsList, playlistId) {
+  for (let i = 0; i < artistsList.length; i++) {
+    for (let j = 0; j < artistsList[i].length; j++) {
+      addArtistTopTracks(artistsList[i][j].id, getArtistImportance(artistsList[i][j].id, artistsList), playlistId);
+    }
+  }
+}
+
+router.post('/generate', (req, res) => {
+  let playlistId = -1;
+  spotifyApi.createPlaylist(req.body.userId, req.body.playlistName, { public: true })
+    .then((data) => {
+      playlistId = data.body.id;
+      addTopTracks(req.body.tracksList, playlistId);
+      addCommonTracks(req.body.tracksList, playlistId);
+      addCommonArtists(req.body.artistsList, playlistId);
+      addRecommendations(req.body.tracksList, (tracks) => {
+        addTracks(playlistId, tracks);
+      });
+    }, (err) => {
+      return res.status(500).send(err);
+    });
 });
 
 export default router;
